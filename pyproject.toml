@@ -1,0 +1,4 @@
+[project]
+name = "ShaperExport"
+version = "0.0.1rc1"
+description = "FreeCAD-Draft-Plugin zum Export ausgewählter Geometrie als SVG für Shaper Origin"
