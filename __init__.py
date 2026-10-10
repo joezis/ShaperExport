@@ -1,0 +1,1 @@
+"""ShaperExport FreeCAD add-on."""
