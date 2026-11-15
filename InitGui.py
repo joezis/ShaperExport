@@ -18,34 +18,15 @@ sys.path.insert(0, _plugin_dir)
 
 class ExportCommand:
     @staticmethod
-    def _tr(de_text, en_text):
-        languages = []
-        try:
-            languages.append(App.ParamGet("User parameter:BaseApp/Preferences/General").GetString("Language", ""))
-        except Exception:
-            pass
-        try:
-            languages.append(App.getLocale())
-        except Exception:
-            pass
-        try:
-            try:
-                from PySide import QtCore
-            except ImportError:
-                try:
-                    from PySide2 import QtCore
-                except ImportError:
-                    from PySide6 import QtCore
-            languages.append(QtCore.QLocale().name())
-        except Exception:
-            pass
-        is_german = any(str(language).lower().startswith(("de", "german", "deutsch"))
-                        for language in languages if language)
-        return de_text if is_german else en_text
+    def _translate(key):
+        # FreeCAD may invoke command callbacks after discarding InitGui's
+        # execution namespace, so resolve the translator inside each callback.
+        import translations
+        return translations.translate(key)
 
     def GetResources(self):
-        return {"MenuText": self._tr("Für Shaper exportieren ...", "Export SVG..."),
-                "ToolTip": self._tr("Ausgewählte Geometrie als Shaper exportieren", "Export selected geometry as SVG")}
+        return {"MenuText": self._translate("Export SVG..."),
+                "ToolTip": self._translate("Export selected geometry as SVG")}
     def IsActive(self):
         return Gui.activeDocument() is not None
     def Activated(self):
@@ -55,8 +36,7 @@ class ExportCommand:
                          or "shape2dview" in str(getattr(obj, "Name", "")).lower()
                          or "shape2dview" in str(getattr(obj, "Label", "")).lower()]
         if not shape2d_views:
-            message = self._tr("Bitte wähle zuerst ein Shape2DView-Objekt aus.",
-                               "Please select a Shape2DView object first.")
+            message = self._translate("Please select a Shape2DView object first.")
             try:
                 from PySide import QtWidgets
                 message_box = QtWidgets.QMessageBox
@@ -71,7 +51,7 @@ class ExportCommand:
                     except (ImportError, AttributeError):
                         from PySide import QtGui
                         message_box = QtGui.QMessageBox
-            message_box.information(Gui.getMainWindow(), self._tr("Shaper-Export", "Shaper Export"), message)
+            message_box.information(Gui.getMainWindow(), self._translate("Shaper Export"), message)
             return
         # FreeCAD executes InitGui.py as a standalone script, so it has no
         # package context for a relative import.

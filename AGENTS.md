@@ -10,9 +10,8 @@
 - Endpunkte, deren Koordinaten exakt übereinstimmen, sollen zu einem Pfad
   verbunden werden. Endet ein Pfad wieder an seinem Startpunkt, wird er im SVG
   geschlossen.
-- Nach dem Export soll eine Statistik ausgegeben werden, wie viele
-  geometrische Objektpaare (zum Beispiel Linien, Kreise und Polygone) sich
-  überlappen.
+- Nach dem Export soll eine Statistik die exportierten Pfade, geschlossenen
+  Formen, offenen Linien und Endpunktabstände der offenen Linien ausgeben.
 - Der Befehl soll im Draft-Menü erscheinen und von dort aufrufbar sein.
 
 ## Dateien und Verwendung
@@ -25,7 +24,14 @@
   beide Maße, wird für den nächsten Export gespeichert und kann im Dialog
   abgebrochen werden. Die Statistik erscheint in der FreeCAD-Konsole sowie,
   sofern verfügbar, in einem Dialog.
+- `translations/en.json` und `translations/de.json` enthalten die englischen
+  und deutschen Texte des Exporters und Befehls. `translations.py` erkennt
+  beim Import den FreeCAD-Sprachcode und lädt die passende Sprachdatei;
+  wenn sie nicht vorhanden ist, wird `en.json` als Fallback geladen.
 - `__init__.py` kennzeichnet den Python-Modulordner.
+- `pyproject.toml` enthält Projektmetadaten (Name, Version und Beschreibung). Die
+  aktuelle Release-Version ist `0.0.1` und wird auch als `__version__` in
+  `__init__.py` geführt.
 - `.gitignore` schließt Python-Bytecode (`__pycache__`, `*.pyc`, `*.pyo`, `*.pyd`) aus dem Repository aus.
 - Installation: den Ordner `ShaperExport` im FreeCAD-Mod-Verzeichnis belassen,
   FreeCAD starten, in Draft Objekte auswählen und den Menüeintrag aufrufen.
@@ -61,19 +67,21 @@
   als innenliegend, wenn ihr erster Konturpunkt innerhalb mindestens einer
   anderen Kontur liegt. Das ist eine Punkt-in-Polygon-Näherung; Transformationen
   verschiedener SVG-Gruppen werden dabei nicht berücksichtigt.
-- Die Abschlussstatistik zählt exportierte `<path>`- und `<circle>`-Elemente
-  gemeinsam als Konturen und gibt diese Anzahl statt der Anzahl selektierter
-  FreeCAD-Objekte aus.
+- Die Abschlussstatistik zählt exportierte SVG-Pfade sowie geschlossene Formen
+  und offene Linien getrennt. Nur wenn offene Linien vorhanden sind, zeigt der
+  Dialog zusätzlich ihre Start-Endpunkt-Abstände in einer separaten Tabelle mit
+  den SVG-Pfad-IDs an.
 - Außenkonturen erhalten `fill="#000000"` und `stroke="#000000"`;
   innenliegende Konturen `fill="#ffffff"` und `stroke="#000000"`;
   Taschen `fill="#777777"` und `stroke="none"`. Die Klassifizierung bestimmt
   Taschen anhand der konfigurierten Maximalgröße und Innenkonturen anhand einer
-  Punkt-in-Polygon-Näherung. Alle Konturen erhalten `stroke-width="0.01"` in SVG-Benutzereinheiten; da
+  Punkt-in-Polygon-Näherung. Alle Konturen erhalten `stroke-width="0.1"` in SVG-Benutzereinheiten; da
   `viewBox` und reale SVG-Abmessungen denselben Zahlenbereich in mm verwenden,
-  entspricht dies 0,01 mm. Die Breite wird auch bei `stroke="none"` gesetzt,
-  damit Inkscape sie als 0,01 mm anzeigt. Shaper verwendet diese Breite nicht zur Bestimmung des
-  Fräserdurchmessers. Attribute und gleichnamige Inline-Style-Eigenschaften
-  werden aktualisiert.
+  entspricht dies 0,1 mm. Die Breite wird auch bei `stroke="none"` gesetzt,
+  damit Inkscape sie als 0,1 mm anzeigt. Shaper verwendet diese Breite nicht zur Bestimmung des
+  Fräserdurchmessers. Stilwerte der `path`-Elemente werden einheitlich im
+  `style`-Attribut gespeichert; gleichnamige SVG-Präsentationsattribute werden
+  entfernt und doppelte CSS-Deklarationen zusammengeführt.
 - Aktuelle Toleranz zum Verbinden vorhandener SVG-Endpunkte: `0.001` SVG-Einheiten.
 - Konturelemente bleiben getrennt; verbundene Segmente einer Kontur werden in
   einem eigenen Element ausgegeben.
@@ -82,9 +90,6 @@
   redundante Geradezwischenpunkte und Kurven erhalten weniger Segmente.
 - Endpunkte werden ohne Toleranz verglichen. Nur exakt gleiche XY-Koordinaten
   werden verbunden.
-- Die Überlappungsstatistik zählt Objektpaare mit sich schneidenden XY-
-  Begrenzungsboxen. Berührende Boxen zählen als überlappend. Das ist eine
-  Bounding-Box-Näherung und kein exakter Kontur- oder Flächenschnitt.
 - Objekte ohne Shape-Kanten liefern keine SVG-Geometrie.
 - Die Draft-Menüintegration und die FreeCAD-API-Aufrufe müssen in der
   installierten FreeCAD-Version zur Laufzeit geprüft werden; in dieser
